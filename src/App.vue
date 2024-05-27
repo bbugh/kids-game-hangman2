@@ -1,30 +1,105 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+	import { ref } from "vue";
+
+	const word = ref("");
+	const guess = ref<string[]>([]);
+	const guesses = ref(new Set<string>());
+	const POSSIBLE_LETTERS = [
+		"A",
+		"B",
+		"C",
+		"D",
+		"E",
+		"F",
+		"G",
+		"H",
+		"I",
+		"J",
+		"K",
+		"L",
+		"M",
+		"N",
+		"O",
+		"P",
+		"Q",
+		"R",
+		"S",
+		"T",
+		"U",
+		"V",
+		"W",
+		"X",
+		"Y",
+		"Z",
+	];
+
+	function onChooseLetter(event: MouseEvent) {
+		const button = event.target as HTMLButtonElement;
+		const letter = button.textContent;
+		if (!letter) throw new Error("No letter found");
+
+		if (guesses.value.has(letter)) return;
+
+		guesses.value.add(letter);
+
+		for (let i = 0; i < word.value.length; i++) {
+			if (word.value[i] === letter) {
+				guess.value[i] = letter;
+			}
+		}
+	}
+
+	const state = ref<"new" | "playing" | "won" | "lost">("new");
+
+	function newGame() {
+		state.value = "new";
+		word.value = "";
+
+		// TESTING
+		word.value = "BACON";
+		startGame();
+	}
+
+	function startGame() {
+		state.value = "playing";
+		word.value = word.value.toUpperCase();
+		guess.value = Array(word.value.length).fill("_");
+	}
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
-</template>
+	<button @click="newGame">New Game</button>
+	<div :style="{ display: word ? 'none' : 'block' }"></div>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
+	<h1>Hangman</h1>
+
+	<div v-if="state === 'new'">
+		<p>Enter a word for the other player to guess</p>
+		<input v-model="word" />
+		<button @click="startGame">Start Game</button>
+	</div>
+
+	<pre style="font-size: 200%"><code>
+      _____
+      |   O
+      |  /|\
+      |  / \
+    </code></pre>
+
+	<div v-if="state === 'playing'">
+		<p style="font-size: 200%">Guess: {{ guess.join(" ") }}</p>
+	</div>
+
+	{{ guesses }}
+
+	<div>
+		<button
+			v-for="letter in POSSIBLE_LETTERS"
+			:key="letter"
+			@click="onChooseLetter($event)"
+			:disabled="guesses.has(letter)"
+		>
+			{{ letter }}
+		</button>
+	</div>
+</template>
