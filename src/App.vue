@@ -79,16 +79,18 @@
 </script>
 
 <template>
-	<main style="font-size: 24px">
+	<main style="font-size: 20px">
 		<button @click="newGame">New Game</button>
 		<div :style="{ display: word ? 'none' : 'block' }"></div>
 
-		<h1>Hangman</h1>
+		<h1>Hangman 2</h1>
 
 		<div v-if="state === 'new'">
 			<p>Enter a word for the other player to guess</p>
-			<input v-model="word" />
-			<button @click="startGame">Start Game</button>
+			<form @submit.prevent="startGame">
+				<input v-model="word" />
+				<button type="submit">Start Game</button>
+			</form>
 		</div>
 
 		<pre><code>
@@ -108,7 +110,15 @@
 				:key="letter"
 				@click="onChooseLetter($event)"
 				:disabled="guesses.has(letter)"
-				style="font-size: 24px; min-width: 4ch; padding: 0.5em; text-align: center"
+				:style="{
+					fontSize: '24px',
+					minWidth: '4ch',
+					padding: '0.5em',
+					textAlign: 'center',
+					color: guess.includes(letter) ? 'green' : 'black',
+					borderColor: guess.includes(letter) ? 'green' : '',
+					backgroundColor: guess.includes(letter) ? 'lightgreen' : '',
+				}"
 			>
 				{{ letter }}
 			</button>
