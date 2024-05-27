@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import { ref } from "vue";
+	import { ref, onMounted, onUnmounted } from "vue";
 
 	const word = ref("");
 	const guess = ref<string[]>([]);
@@ -33,9 +33,7 @@
 		"Z",
 	];
 
-	function onChooseLetter(event: MouseEvent) {
-		const button = event.target as HTMLButtonElement;
-		const letter = button.textContent;
+	function onChooseLetter(letter: string) {
 		if (!letter) throw new Error("No letter found");
 
 		if (guesses.value.has(letter)) return;
@@ -86,6 +84,25 @@
 
 		guesses.value = new Set<string>();
 	}
+
+  function onKeyDown(event: KeyboardEvent) {
+    if (state.value !== "playing") return;
+
+    const letter = event.key.toUpperCase();
+    if (!POSSIBLE_LETTERS.includes(letter)) return;
+
+    if (guesses.value.has(letter)) return;
+
+    onChooseLetter(letter);
+  }
+
+  onMounted(() => {
+    window.addEventListener("keydown", onKeyDown);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener("keydown", onKeyDown);
+  });
 </script>
 
 <template>
@@ -125,7 +142,7 @@
 			<button
 				v-for="letter in POSSIBLE_LETTERS"
 				:key="letter"
-				@click="onChooseLetter($event)"
+				@click="onChooseLetter(letter)"
 				:disabled="guesses.has(letter)"
 				:style="{
 					fontSize: '24px',
