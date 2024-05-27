@@ -73,7 +73,17 @@
 	function startGame() {
 		state.value = "playing";
 		word.value = word.value.toUpperCase();
-		guess.value = Array(word.value.length).fill("_");
+
+		guess.value = Array(word.value.length);
+
+		for (let i = 0; i < word.value.length; i++) {
+			if (POSSIBLE_LETTERS.includes(word.value[i])) {
+				guess.value[i] = "_";
+			} else {
+				guess.value[i] = word.value[i];
+			}
+		}
+
 		guesses.value = new Set<string>();
 	}
 </script>
@@ -101,9 +111,16 @@
     </code></pre>
 
 		<div v-if="state !== 'new'" style="font-size: 1.5em">
-			<p>Guess: {{ guess.join(" ") }}</p>
+			<p>Guess:
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5em">
+          <div v-for="(letter, index) in guess" :key="index" style="border: 1px solid gray; border-radius:3px; width: 50px;height: 50px;display: flex;align-items: center;justify-content: center;">
+            {{ letter }}
+          </div>
+        </div>
+      </p>
 		</div>
 
+    <p style="font-size: 1.5em">Letters:</p>
 		<div v-if="state === 'playing'" style="display: flex; flex-wrap: wrap; gap: 1em">
 			<button
 				v-for="letter in POSSIBLE_LETTERS"
