@@ -40,12 +40,24 @@
 
 		if (guesses.value.has(letter)) return;
 
-		guesses.value.add(letter);
+		const isCorrect = word.value.includes(letter);
+
+		if (!isCorrect) {
+			guesses.value.add(letter);
+			if (guesses.value.size >= 6) {
+				state.value = "lost";
+			}
+			return;
+		}
 
 		for (let i = 0; i < word.value.length; i++) {
 			if (word.value[i] === letter) {
 				guess.value[i] = letter;
 			}
+		}
+
+		if (guess.value.join("") === word.value) {
+			state.value = "won";
 		}
 	}
 
@@ -64,42 +76,55 @@
 		state.value = "playing";
 		word.value = word.value.toUpperCase();
 		guess.value = Array(word.value.length).fill("_");
+		guesses.value = new Set<string>();
 	}
 </script>
 
 <template>
-	<button @click="newGame">New Game</button>
-	<div :style="{ display: word ? 'none' : 'block' }"></div>
+	<main style="font-size: 24px">
+		<button @click="newGame">New Game</button>
+		<div :style="{ display: word ? 'none' : 'block' }"></div>
 
-	<h1>Hangman</h1>
+		<h1>Hangman</h1>
 
-	<div v-if="state === 'new'">
-		<p>Enter a word for the other player to guess</p>
-		<input v-model="word" />
-		<button @click="startGame">Start Game</button>
-	</div>
+		<div v-if="state === 'new'">
+			<p>Enter a word for the other player to guess</p>
+			<input v-model="word" />
+			<button @click="startGame">Start Game</button>
+		</div>
 
-	<pre style="font-size: 200%"><code>
+		<pre><code>
       _____
-      |   O
-      |  /|\
-      |  / \
+      |   <span v-if="guesses.size > 0">O</span>
+      |  <span v-if="guesses.size > 1">/</span><span v-if="guesses.size > 2">|</span><span v-if="guesses.size > 3">\</span>
+      |  <span v-if="guesses.size > 4">/</span> <span v-if="guesses.size > 5">\</span>
     </code></pre>
 
-	<div v-if="state === 'playing'">
-		<p style="font-size: 200%">Guess: {{ guess.join(" ") }}</p>
-	</div>
+		<div v-if="state === 'playing' || state === 'won'">
+			<p>Guess: {{ guess.join(" ") }}</p>
+		</div>
 
-	{{ guesses }}
+		<div v-if="state === 'playing'">
+			<button
+				v-for="letter in POSSIBLE_LETTERS"
+				:key="letter"
+				@click="onChooseLetter($event)"
+				:disabled="guesses.has(letter)"
+			>
+				{{ letter }}
+			</button>
+		</div>
 
-	<div>
-		<button
-			v-for="letter in POSSIBLE_LETTERS"
-			:key="letter"
-			@click="onChooseLetter($event)"
-			:disabled="guesses.has(letter)"
-		>
-			{{ letter }}
-		</button>
-	</div>
+		<div v-if="state === 'won'">
+			<p style="color: green">You won! 👏🏻👏🏻👏🏻</p>
+
+			<button @click="newGame">New Game</button>
+		</div>
+
+		<div v-if="state === 'lost'">
+			<p style="color: red">You lost! 😭 The word was {{ word }}</p>
+
+			<button @click="newGame">New Game</button>
+		</div>
+	</main>
 </template>
