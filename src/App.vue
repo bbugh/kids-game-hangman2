@@ -66,10 +66,8 @@
 	function newGame() {
 		state.value = "new";
 		word.value = "";
-
-		// TESTING
-		word.value = "BACON";
-		startGame();
+		guess.value = [];
+		guesses.value = new Set<string>();
 	}
 
 	function startGame() {
@@ -100,16 +98,17 @@
       |  <span v-if="guesses.size > 4">/</span> <span v-if="guesses.size > 5">\</span>
     </code></pre>
 
-		<div v-if="state === 'playing' || state === 'won'">
+		<div v-if="state !== 'new'" style="font-size: 1.5em">
 			<p>Guess: {{ guess.join(" ") }}</p>
 		</div>
 
-		<div v-if="state === 'playing'">
+		<div v-if="state === 'playing'" style="display: flex; flex-wrap: wrap; gap: 1em">
 			<button
 				v-for="letter in POSSIBLE_LETTERS"
 				:key="letter"
 				@click="onChooseLetter($event)"
 				:disabled="guesses.has(letter)"
+				style="font-size: 24px; min-width: 4ch; padding: 0.5em; text-align: center"
 			>
 				{{ letter }}
 			</button>
@@ -128,3 +127,10 @@
 		</div>
 	</main>
 </template>
+
+<style scoped>
+	button:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
+</style>
