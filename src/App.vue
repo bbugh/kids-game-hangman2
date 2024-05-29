@@ -142,7 +142,7 @@
 		<button @click="newGame">New Game</button>
 		<div :style="{ display: word ? 'none' : 'block' }"></div>
 
-		<h1>Hangman 2</h1>
+		<h1 style="margin-bottom: 0">Hangman 2</h1>
 
 		<div v-if="state === 'new'" style="display: flex; gap: 1em">
 			<div>
@@ -157,67 +157,69 @@
 			</div>
 		</div>
 
-		<pre><code>
+		<div v-if="state !== 'new'">
+			<pre style="margin: 0"><code>
       _____
       |   <span v-if="guesses.size > 0">O</span>
       |  <span v-if="guesses.size > 1">/</span><span v-if="guesses.size > 2">|</span><span v-if="guesses.size > 3">\</span>
       |  <span v-if="guesses.size > 4">/</span> <span v-if="guesses.size > 5">\</span>
     </code></pre>
 
-		<div v-if="state !== 'new'" style="font-size: 1.5em">
-			Guess:
-			<div style="display: flex; flex-wrap: wrap; gap: 0.5em">
-				<div
-					v-for="(letter, index) in guess"
-					:key="index"
-					style="
-						border: 1px solid gray;
-						border-radius: 3px;
-						width: 50px;
-						height: 50px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-					"
+			<div style="font-size: 1.5em">
+				Guess ({{ 6 - guesses.size }} left):
+				<div style="display: flex; flex-wrap: wrap; gap: 0.5em">
+					<div
+						v-for="(letter, index) in guess"
+						:key="index"
+						style="
+							border: 1px solid gray;
+							border-radius: 3px;
+							width: 50px;
+							height: 50px;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+						"
+					>
+						{{ letter }}
+					</div>
+				</div>
+				<div v-if="hint" style="font-size: 0.75em; margin-top: 10px">hint: {{ hint }}</div>
+			</div>
+
+			<p style="font-size: 1.5em; margin-bottom: 10px">Letters:</p>
+			<small>Click on a letter or type on your keyboard</small>
+			<div style="display: flex; flex-wrap: wrap; gap: 1em">
+				<button
+					v-for="letter in POSSIBLE_LETTERS"
+					:key="letter"
+					@click="onChooseLetter(letter)"
+					:disabled="guesses.has(letter)"
+					:style="{
+						fontSize: '24px',
+						minWidth: '4ch',
+						padding: '0.5em',
+						textAlign: 'center',
+						color: guess.includes(letter) ? 'green' : 'black',
+						borderColor: guess.includes(letter) ? 'green' : '',
+						backgroundColor: guess.includes(letter) ? 'lightgreen' : '',
+					}"
 				>
 					{{ letter }}
-				</div>
+				</button>
 			</div>
-			<small v-if="hint">hint: {{ hint }}</small>
-		</div>
 
-		<p style="font-size: 1.5em">Letters:</p>
-		<small>Click on a letter or type on your keyboard</small>
-		<div v-if="state === 'playing'" style="display: flex; flex-wrap: wrap; gap: 1em">
-			<button
-				v-for="letter in POSSIBLE_LETTERS"
-				:key="letter"
-				@click="onChooseLetter(letter)"
-				:disabled="guesses.has(letter)"
-				:style="{
-					fontSize: '24px',
-					minWidth: '4ch',
-					padding: '0.5em',
-					textAlign: 'center',
-					color: guess.includes(letter) ? 'green' : 'black',
-					borderColor: guess.includes(letter) ? 'green' : '',
-					backgroundColor: guess.includes(letter) ? 'lightgreen' : '',
-				}"
-			>
-				{{ letter }}
-			</button>
-		</div>
+			<div v-if="state === 'won'">
+				<p style="color: green">You won! 👏🏻👏🏻👏🏻</p>
 
-		<div v-if="state === 'won'">
-			<p style="color: green">You won! 👏🏻👏🏻👏🏻</p>
+				<button @click="newGame">New Game</button>
+			</div>
 
-			<button @click="newGame">New Game</button>
-		</div>
+			<div v-if="state === 'lost'">
+				<p style="color: red">You lost! 😭 The word was {{ word }}</p>
 
-		<div v-if="state === 'lost'">
-			<p style="color: red">You lost! 😭 The word was {{ word }}</p>
-
-			<button @click="newGame">New Game</button>
+				<button @click="newGame">New Game</button>
+			</div>
 		</div>
 	</main>
 </template>
