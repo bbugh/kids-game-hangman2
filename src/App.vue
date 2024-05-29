@@ -1,9 +1,13 @@
 <script setup lang="ts">
 	import { ref, onMounted, onUnmounted } from "vue";
 
+	import data from "./data2.json";
+
 	const word = ref("");
 	const guess = ref<string[]>([]);
 	const guesses = ref(new Set<string>());
+	const hint = ref("");
+
 	const POSSIBLE_LETTERS = [
 		"A",
 		"B",
@@ -66,6 +70,7 @@
 		word.value = "";
 		guess.value = [];
 		guesses.value = new Set<string>();
+		hint.value = "";
 	}
 
 	function startGame() {
@@ -85,24 +90,51 @@
 		guesses.value = new Set<string>();
 	}
 
-  function onKeyDown(event: KeyboardEvent) {
-    if (state.value !== "playing") return;
+	function randomWord() {
+		const categories = Object.keys(data.words);
+		const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+		hint.value = randomCategory;
+		const randomWord = (data.words as any)[randomCategory][
+			Math.floor(Math.random() * (data.words as any)[randomCategory].length)
+		];
+		word.value = randomWord.toUpperCase();
+	}
 
-    const letter = event.key.toUpperCase();
-    if (!POSSIBLE_LETTERS.includes(letter)) return;
+	function startGameRandomWord() {
+		state.value = "playing";
+		randomWord();
 
-    if (guesses.value.has(letter)) return;
+		guess.value = Array(word.value.length);
 
-    onChooseLetter(letter);
-  }
+		for (let i = 0; i < word.value.length; i++) {
+			if (POSSIBLE_LETTERS.includes(word.value[i])) {
+				guess.value[i] = "_";
+			} else {
+				guess.value[i] = word.value[i];
+			}
+		}
 
-  onMounted(() => {
-    window.addEventListener("keydown", onKeyDown);
-  });
+		guesses.value = new Set<string>();
+	}
 
-  onUnmounted(() => {
-    window.removeEventListener("keydown", onKeyDown);
-  });
+	function onKeyDown(event: KeyboardEvent) {
+		if (state.value !== "playing") return;
+
+		const letter = event.key.toUpperCase();
+		if (!POSSIBLE_LETTERS.includes(letter)) return;
+
+		if (guesses.value.has(letter)) return;
+
+		onChooseLetter(letter);
+	}
+
+	onMounted(() => {
+		window.addEventListener("keydown", onKeyDown);
+	});
+
+	onUnmounted(() => {
+		window.removeEventListener("keydown", onKeyDown);
+	});
 </script>
 
 <template>
@@ -112,12 +144,17 @@
 
 		<h1>Hangman 2</h1>
 
-		<div v-if="state === 'new'">
-			<p>Enter a word for the other player to guess</p>
-			<form @submit.prevent="startGame">
-				<input v-model="word" />
-				<button type="submit">Start Game</button>
-			</form>
+		<div v-if="state === 'new'" style="display: flex; gap: 1em">
+			<div>
+				<button @click="startGameRandomWord">Play With a Random Word</button>
+			</div>
+			<div>OR</div>
+			<div>
+				<form @submit.prevent="startGame">
+					<input v-model="word" placeholder="Enter a word to guess" />
+					<button type="submit">Start</button>
+				</form>
+			</div>
 		</div>
 
 		<pre><code>
@@ -128,16 +165,29 @@
     </code></pre>
 
 		<div v-if="state !== 'new'" style="font-size: 1.5em">
-			<p>Guess:
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5em">
-          <div v-for="(letter, index) in guess" :key="index" style="border: 1px solid gray; border-radius:3px; width: 50px;height: 50px;display: flex;align-items: center;justify-content: center;">
-            {{ letter }}
-          </div>
-        </div>
-      </p>
+			Guess:
+			<div style="display: flex; flex-wrap: wrap; gap: 0.5em">
+				<div
+					v-for="(letter, index) in guess"
+					:key="index"
+					style="
+						border: 1px solid gray;
+						border-radius: 3px;
+						width: 50px;
+						height: 50px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					"
+				>
+					{{ letter }}
+				</div>
+			</div>
+			<small v-if="hint">hint: {{ hint }}</small>
 		</div>
 
-    <p style="font-size: 1.5em">Letters:</p>
+		<p style="font-size: 1.5em">Letters:</p>
+		<small>Click on a letter or type on your keyboard</small>
 		<div v-if="state === 'playing'" style="display: flex; flex-wrap: wrap; gap: 1em">
 			<button
 				v-for="letter in POSSIBLE_LETTERS"
